@@ -17,7 +17,6 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // CORS for public chat
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders() });
     }
@@ -28,6 +27,11 @@ export default {
       if (path === '/api/chat' && request.method === 'POST') return chatProxy(request, env);
       if (path === '/api/health') return healthEndpoint(env, request);
       if (path === '/api/keys' && request.method === 'GET') return listKeys(env, request);
+      if (path === '/api/keys' && request.method === 'POST') return saveKey(env, request);
+      if (path.startsWith('/api/keys/') && request.method === 'DELETE') {
+        const id = path.split('/').pop();
+        return deleteKey(env, request, id);
+      }
       if (path === '/') return Response.redirect(url.toString() + 'ai', 302);
       return new Response('Not Found', { status: 404 });
     } catch (e) {
@@ -55,13 +59,11 @@ function json(data, status = 200) {
   });
 }
 
-// ---------- AUTH ----------
 function isAdmin(request, env) {
-  const token = request.headers.get('X-Admin-Token') || new URL(request.url).searchParams.get('token);
+  const token = request.headers.get('X-Admin-Token') || new URL(request.url).searchParams.get('token');
   return token && token === env.ADMIN_TOKEN;
 }
 
-// ---------- VAULT ----------
 async function listKeys(env, request) {
   if (!isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
   const list = await env.VAULT.list({ prefix: 'key:' });
@@ -89,13 +91,11 @@ async function deleteKey(env, request, id) {
   return json({ ok: true });
 }
 
-// ---------- CHAT PROXY ----------
 async function chatProxy(request, env) {
   const body = await request.json();
   const { messages, model, provider } = body;
   if (!messages || !Array.isArray(messages)) return json({ error: 'messages required' }, 400);
 
-  // Public rate limit: 20 req/hour per IP
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const rlKey = `rl:${ip}`;
   const rl = await env.HEALTH.get(rlKey, { type: 'json' }) || { count: 0, reset: Date.now() + 3600000 };
@@ -122,7 +122,7 @@ async function chatProxy(request, env) {
         if (status === 401 || status === 429) {
           await markKeyStatus(env, k.id, 'dead', `HTTP ${status}`);
           lastError = `${prov} key ${k.id}: HTTP ${status}`;
-          continue; // try next key
+          continue;
         }
         lastError = `${prov} key ${k.id}: HTTP ${status}`;
       } catch (e) {
@@ -155,7 +155,6 @@ async function callProvider(prov, apiKey, messages, model) {
       body: JSON.stringify({ model: m, max_tokens: 1024, messages })
     });
   }
-  // OpenAI-compatible (openrouter, openai, groq, mistral, deepseek, xai, google via openai compat)
   const url = prov === 'google'
     ? `${p.base}/openai/chat/completions?key=${apiKey}`
     : `${p.base}/chat/completions`;
@@ -181,7 +180,6 @@ async function markKeyStatus(env, id, status, detail) {
   }
 }
 
-// ---------- HEALTH CHECKER ----------
 async function runHealthCheck(env) {
   const list = await env.VAULT.list({ prefix: 'key:' });
   for (const k of list.keys) {
@@ -207,7 +205,6 @@ async function healthEndpoint(env, request) {
   return json({ keys: out, checkedAt: Date.now() });
 }
 
-// ---------- PAGES ----------
 function dashboardPage(env) {
   return new Response(DASHBOARD_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
@@ -301,7 +298,6 @@ const DASHBOARD_HTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta n
 .kpi{font-size:26px;font-weight:700;letter-spacing:-.02em}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
 .dot.live{background:var(--green)}.dot.dead{background:var(--red)}.dot.unknown{background:var(--muted)}
-/* Jarvis brain */
 .brain-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 0 10px}
 .brain{position:relative;width:160px;height:160px}
 .brain .core{position:absolute;inset:30px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--cyan),var(--accent) 60%,#2a1a6e);box-shadow:0 0 40px var(--accent),inset 0 0 30px rgba(255,255,255,.15)}
@@ -311,7 +307,6 @@ const DASHBOARD_HTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta n
 .nodes{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
 .node{font-size:11px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--panel)}
 .node.on{border-color:var(--green);color:var(--green)}
-/* Chat */
 .chat{display:flex;flex-direction:column;height:min(520px,70vh);background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .chatlog{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
 .msg{max-width:80%;padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.5}
@@ -350,16 +345,16 @@ async function refresh(){
     const live=keys.filter(k=>k.status==='live').length;
     const dead=keys.filter(k=>k.status==='dead').length;
     document.getElementById('kpis').innerHTML=`
-      <div class="card"><h3>Providers</h3><div class="kpi">${Object.keys(${JSON.stringify(Object.keys(PROVIDERS))}).length}</div></div>
+      <div class="card"><h3>Providers</h3><div class="kpi">8</div></div>
       <div class="card"><h3>Live keys</h3><div class="kpi" style="color:var(--green)">${live}</div></div>
       <div class="card"><h3>Dead keys</h3><div class="kpi" style="color:var(--red)">${dead}</div></div>
       <div class="card"><h3>Last check</h3><div class="kpi" style="font-size:14px">${d.checkedAt?new Date(d.checkedAt).toLocaleTimeString():'—'}</div></div>`;
     const n=document.getElementById('nodes'); n.innerHTML='';
     keys.forEach(k=>{const el=document.createElement('div');el.className='node'+(k.status==='live'?' on':'');el.textContent=k.provider+' · '+k.label;n.appendChild(el);});
-  }catch(e){console.log(e);}
+  }catch(e){}
 }
 refresh();setInterval(refresh,30000);
-function addMsg(who,text){const l=document.getElementById('log');const m=document.createElement('div');m.className='msg '+who;m.innerHTML=`<div class="who">${who}</div>${text.replace(/</g,'&lt;')}`;l.appendChild(m);l.scrollTop=l.scrollHeight;}
+function addMsg(who,text){const l=document.getElementById('log');const m=document.createElement('div');m.className='msg '+who;m.innerHTML=`<div class="who">${who}</div>${text.replace(/</g,'<')}`;l.appendChild(m);l.scrollTop=l.scrollHeight;}
 async function send(){
   const inp=document.getElementById('inp'); const t=inp.value.trim(); if(!t)return; inp.value='';
   addMsg('user',t);
