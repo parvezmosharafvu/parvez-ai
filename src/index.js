@@ -326,20 +326,24 @@ button.del{background:transparent;border:1px solid var(--red);color:var(--red);p
 <div class="grid" id="grid"></div></div>
 <div class="toast" id="toast" style="display:none"></div>
 <script>
+const token = new URLSearchParams(location.search).get('token') || '';
+function authHeaders(){ return token ? {'X-Admin-Token': token} : {}; }
 async function load(){
-  const r=await fetch('/api/keys'); const d=await r.json();
+  const r=await fetch('/api/keys', {headers: authHeaders()}); const d=await r.json();
   const g=document.getElementById('grid'); g.innerHTML='';
+  if(d.error){ g.innerHTML='<div style="color:var(--red)">'+d.error+'</div>'; return; }
   (d.keys||[]).forEach(k=>{
     const el=document.createElement('div'); el.className='k';
     el.innerHTML='<div class="prov">'+k.provider+'</div><div class="lbl"><span class="dot '+k.status+'"></span>'+k.label+'</div><div style="font-size:11px;color:var(--muted)">'+k.status+' · '+k.id+'</div><button class="del" onclick="delKey(\''+k.id+'\')">Delete</button>';
     g.appendChild(el);
   });
+  if(!d.keys || d.keys.length===0) g.innerHTML='<div style="color:var(--muted);font-size:13px">No keys yet. Add one above.</div>';
 }
 async function save(){
-  const r=await fetch('/api/keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:document.getElementById('prov').value,label:document.getElementById('lbl').value,apiKey:document.getElementById('key').value})});
-  const d=await r.json(); toast(d.ok?'Key saved':'Error: '+(d.error||'')); if(d.ok){document.getElementById('key').value='';load();}
+  const r=await fetch('/api/keys',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({provider:document.getElementById('prov').value,label:document.getElementById('lbl').value,apiKey:document.getElementById('key').value})});
+  const d=await r.json(); toast(d.ok?'Key saved!':'Error: '+(d.error||'Failed')); if(d.ok){document.getElementById('key').value='';document.getElementById('lbl').value='';load();}
 }
-async function delKey(id){ if(!confirm('Delete key '+id+'?'))return; await fetch('/api/keys/'+id,{method:'DELETE'}); load(); }
+async function delKey(id){ if(!confirm('Delete key '+id+'?'))return; await fetch('/api/keys/'+id,{method:'DELETE',headers:authHeaders()}); load(); }
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 load();
 </script></body></html>`;
