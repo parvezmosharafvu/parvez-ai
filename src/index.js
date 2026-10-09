@@ -22,7 +22,8 @@ export default {
     }
 
     try {
-      if (path === '/' || path === '/ai' || path === '/ai/') return dashboardPage(env);
+      if (path === '/' || path === '') return landingPage(env);
+      if (path === '/ai' || path === '/ai/' || path === '/dashboard') return dashboardPage(env);
       if (path === '/vault' || path === '/vault/') return vaultPage(env, request);
       if (path === '/api/chat' && request.method === 'POST') return chatProxy(request, env);
       if (path === '/api/health') return healthEndpoint(env, request);
@@ -204,6 +205,11 @@ async function healthEndpoint(env, request) {
   return json({ keys: out, checkedAt: Date.now() });
 }
 
+
+function landingPage(env) {
+  return new Response(LANDING_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
+
 function dashboardPage(env) {
   return new Response(DASHBOARD_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
@@ -214,6 +220,58 @@ function vaultPage(env, request) {
   }
   return new Response(VAULT_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
+
+
+const LANDING_HTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Parvez AI</title>
+<style>
+:root{--bg:#07070c;--panel:#101018;--line:#1e1e2a;--text:#e8e8f0;--muted:#7a7a90;--accent:#6c5ce7;--cyan:#22d3ee}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--line)}
+.nav .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px}
+.nav .brand .orb{width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--cyan),var(--accent));box-shadow:0 0 20px var(--accent)}
+.nav a{color:var(--muted);text-decoration:none;font-size:14px;margin-left:20px}
+.hero{max-width:900px;margin:0 auto;padding:80px 24px;text-align:center}
+.hero h1{font-size:42px;margin:0 0 16px;background:linear-gradient(135deg,var(--text),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--muted);font-size:18px;margin:0 0 32px}
+.login-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px;max-width:400px;margin:0 auto 60px}
+.login-box h2{margin:0 0 8px;font-size:20px}
+.login-box p{color:var(--muted);font-size:14px;margin:0 0 20px}
+.login-box input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;color:var(--text);font-size:15px;margin-bottom:12px}
+.login-box button{width:100%;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:12px;font-size:15px;font-weight:600;cursor:pointer}
+.tech{max-width:1000px;margin:0 auto;padding:40px 24px}
+.tech h2{text-align:center;margin:0 0 32px;font-size:28px}
+.tech-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.tech-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;text-align:center}
+.tech-card .icon{font-size:28px;margin-bottom:8px}
+.tech-card h3{margin:0 0 6px;font-size:16px}
+.tech-card p{margin:0;color:var(--muted);font-size:13px}
+</style></head><body>
+<div class="nav">
+  <div class="brand"><div class="orb"></div>Parvez AI</div>
+  <div><a href="/ai">Dashboard</a><a href="/vault">API Vault</a></div>
+</div>
+<div class="hero">
+  <h1>Parvez AI</h1>
+  <p>Multi-provider AI platform with encrypted API vault and real-time routing</p>
+</div>
+<div class="login-box">
+  <h2>Access Dashboard</h2>
+  <p>Enter to continue to the command center</p>
+  <input type="text" placeholder="Name (optional)" id="name">
+  <button onclick="location.href='/ai'">Continue</button>
+</div>
+<div class="tech">
+  <h2>Technology</h2>
+  <div class="tech-grid">
+    <div class="tech-card"><div class="icon">⚡</div><h3>Cloudflare Workers</h3><p>Edge compute, global deployment</p></div>
+    <div class="tech-card"><div class="icon">🔐</div><h3>Encrypted Vault</h3><p>KV storage for API keys</p></div>
+    <div class="tech-card"><div class="icon">🔄</div><h3>Multi-Provider</h3><p>OpenAI, Anthropic, Groq, and more</p></div>
+    <div class="tech-card"><div class="icon">🧠</div><h3>Auto Failover</h3><p>Switches keys on rate limits</p></div>
+    <div class="tech-card"><div class="icon">📊</div><h3>Real-time Health</h3><p>Live key status monitoring</p></div>
+    <div class="tech-card"><div class="icon">🌐</div><h3>Public Access</h3><p>Rate-limited, open platform</p></div>
+  </div>
+</div>
+</body></html>`;
 
 const LOGIN_HTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Parvez AI · Vault</title>
 <style>body{margin:0;background:#0a0a0f;color:#e8e8f0;font-family:system-ui;display:grid;place-items:center;height:100vh}
