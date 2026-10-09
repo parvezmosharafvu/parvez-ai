@@ -22,7 +22,7 @@ export default {
     }
 
     try {
-      if (path === '/ai' || path === '/ai/') return dashboardPage(env);
+      if (path === '/' || path === '/ai' || path === '/ai/') return dashboardPage(env);
       if (path === '/vault' || path === '/vault/') return vaultPage(env, request);
       if (path === '/api/chat' && request.method === 'POST') return chatProxy(request, env);
       if (path === '/api/health') return healthEndpoint(env, request);
@@ -32,7 +32,6 @@ export default {
         const id = path.split('/').pop();
         return deleteKey(env, request, id);
       }
-      if (path === '/') return Response.redirect(url.toString() + 'ai', 302);
       return new Response('Not Found', { status: 404 });
     } catch (e) {
       return json({ error: e.message }, 500);
@@ -320,7 +319,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta n
 </style></head><body><div class="shell">
 <div class="side">
   <div class="brand"><div class="orb"></div>Parvez AI</div>
-  <a class="on" href="/ai">Dashboard</a>
+  <a class="on" href="/">Dashboard</a>
   <a href="/vault">API Vault</a>
 </div>
 <div class="main">
