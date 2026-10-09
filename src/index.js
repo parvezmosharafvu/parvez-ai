@@ -264,7 +264,7 @@ async function load(){
   const g=document.getElementById('grid'); g.innerHTML='';
   (d.keys||[]).forEach(k=>{
     const el=document.createElement('div'); el.className='k';
-    el.innerHTML=`<div class="prov">${k.provider}</div><div class="lbl"><span class="dot ${k.status}"></span>${k.label}</div><div style="font-size:11px;color:var(--muted)">${k.status} · ${k.id}</div><button class="del" onclick="delKey('${k.id}')">Delete</button>`;
+    el.innerHTML='<div class="prov">'+k.provider+'</div><div class="lbl"><span class="dot '+k.status+'"></span>'+k.label+'</div><div style="font-size:11px;color:var(--muted)">'+k.status+' · '+k.id+'</div><button class="del" onclick="delKey(\''+k.id+'\')">Delete</button>';
     g.appendChild(el);
   });
 }
@@ -344,17 +344,13 @@ async function refresh(){
     const keys=d.keys||[];
     const live=keys.filter(k=>k.status==='live').length;
     const dead=keys.filter(k=>k.status==='dead').length;
-    document.getElementById('kpis').innerHTML=`
-      <div class="card"><h3>Providers</h3><div class="kpi">8</div></div>
-      <div class="card"><h3>Live keys</h3><div class="kpi" style="color:var(--green)">${live}</div></div>
-      <div class="card"><h3>Dead keys</h3><div class="kpi" style="color:var(--red)">${dead}</div></div>
-      <div class="card"><h3>Last check</h3><div class="kpi" style="font-size:14px">${d.checkedAt?new Date(d.checkedAt).toLocaleTimeString():'—'}</div></div>`;
+    document.getElementById('kpis').innerHTML='<div class="card"><h3>Providers</h3><div class="kpi">8</div></div><div class="card"><h3>Live keys</h3><div class="kpi" style="color:var(--green)">'+live+'</div></div><div class="card"><h3>Dead keys</h3><div class="kpi" style="color:var(--red)">'+dead+'</div></div><div class="card"><h3>Last check</h3><div class="kpi" style="font-size:14px">'+(d.checkedAt?new Date(d.checkedAt).toLocaleTimeString():'—')+'</div></div>';
     const n=document.getElementById('nodes'); n.innerHTML='';
     keys.forEach(k=>{const el=document.createElement('div');el.className='node'+(k.status==='live'?' on':'');el.textContent=k.provider+' · '+k.label;n.appendChild(el);});
-  }catch(e){}
+  }catch(e){console.log(e);}
 }
 refresh();setInterval(refresh,30000);
-function addMsg(who,text){const l=document.getElementById('log');const m=document.createElement('div');m.className='msg '+who;m.innerHTML=`<div class="who">${who}</div>${text.replace(/</g,'<')}`;l.appendChild(m);l.scrollTop=l.scrollHeight;}
+function addMsg(who,text){const l=document.getElementById('log');const m=document.createElement('div');m.className='msg '+who;m.innerHTML='<div class="who">'+who+'</div>'+text.replace(/</g,'<');l.appendChild(m);l.scrollTop=l.scrollHeight;}
 async function send(){
   const inp=document.getElementById('inp'); const t=inp.value.trim(); if(!t)return; inp.value='';
   addMsg('user',t);
