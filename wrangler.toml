@@ -7,11 +7,11 @@ ADMIN_TOKEN = "change-me-to-a-long-random-string"
 
 [[kv_namespaces]]
 binding = "VAULT"
-id = "REPLACE_WITH_VAULT_KV_ID"
+id = "3f5004b9579b4948b849644d3778164b"
 
 [[kv_namespaces]]
 binding = "HEALTH"
-id = "REPLACE_WITH_HEALTH_KV_ID"
+id = "a35352b3fb7b4092987d3f13a34be46d"
 
 [triggers]
 crons = ["*/5 * * * *"]
