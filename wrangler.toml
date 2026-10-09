@@ -1,0 +1,17 @@
+name = "parvez-ai"
+main = "src/index.js"
+compatibility_date = "2024-10-01"
+
+[vars]
+ADMIN_TOKEN = "change-me-to-a-long-random-string"
+
+[[kv_namespaces]]
+binding = "VAULT"
+id = "REPLACE_WITH_VAULT_KV_ID"
+
+[[kv_namespaces]]
+binding = "HEALTH"
+id = "REPLACE_WITH_HEALTH_KV_ID"
+
+[triggers]
+crons = ["*/5 * * * *"]
