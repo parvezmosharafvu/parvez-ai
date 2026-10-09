@@ -15,7 +15,11 @@ const PROVIDERS = {
   perplexity:  { base: 'https://api.perplexity.ai', models: ['llama-3.1-sonar-small-128k-online'] },
   cohere:      { base: 'https://api.cohere.ai/v1', models: ['command-r-plus'] },
   huggingface: { base: 'https://api-inference.huggingface.co/v1', models: ['meta-llama/Meta-Llama-3-8B-Instruct'] },
-  ollama:      { base: 'http://localhost:11434/v1', models: ['llama3.1'] }
+  ollama:      { base: 'http://localhost:11434/v1', models: ['llama3.1'] },
+  cerebras:    { base: 'https://api.cerebras.ai/v1', models: ['llama3.1-8b'] },
+  sambanova:   { base: 'https://api.sambanova.ai/v1', models: ['Meta-Llama-3.1-8B-Instruct'] },
+  siliconflow: { base: 'https://api.siliconflow.cn/v1', models: ['Qwen/Qwen2.5-7B-Instruct'] },
+  nvidia:      { base: 'https://integrate.api.nvidia.com/v1', models: ['meta/llama-3.1-8b-instruct'] }
 };
 
 export default {
@@ -314,7 +318,7 @@ button.del{background:transparent;border:1px solid var(--red);color:var(--red);p
 <button onclick="load()">Refresh</button></div>
 <div class="card add"><h3 style="margin:0 0 12px;font-size:15px">Add a key</h3>
 <div style="display:flex;gap:8px;flex-wrap:wrap">
-  <select id="prov"><option>openrouter</option><option>openai</option><option>anthropic</option><option>google</option><option>groq</option><option>mistral</option><option>deepseek</option><option>xai</option><option>together</option><option>fireworks</option><option>perplexity</option><option>cohere</option><option>huggingface</option><option>ollama</option></select>
+  <select id="prov"><option>openrouter</option><option>openai</option><option>anthropic</option><option>google</option><option>groq</option><option>mistral</option><option>deepseek</option><option>xai</option><option>together</option><option>fireworks</option><option>perplexity</option><option>cohere</option><option>huggingface</option><option>ollama</option><option>cerebras</option><option>sambanova</option><option>siliconflow</option><option>nvidia</option></select>
   <input id="lbl" placeholder="Label (e.g. gmail-1)" style="flex:1;min-width:140px">
 </div>
 <input id="key" placeholder="API key" type="password">
