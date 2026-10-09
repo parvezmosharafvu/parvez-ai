@@ -326,12 +326,15 @@ button.del{background:transparent;border:1px solid var(--red);color:var(--red);p
 <div class="grid" id="grid"></div></div>
 <div class="toast" id="toast" style="display:none"></div>
 <script>
-const token = new URLSearchParams(location.search).get('token') || '';
+// Persist token in localStorage so refreshes work
+let token = new URLSearchParams(location.search).get('token') || localStorage.getItem('pvz_token') || '';
+if(token) localStorage.setItem('pvz_token', token);
 function authHeaders(){ return token ? {'X-Admin-Token': token} : {}; }
 async function load(){
-  const r=await fetch('/api/keys', {headers: authHeaders()}); const d=await r.json();
+  const r=await fetch('/api/keys', {headers: authHeaders()});
+  const d=await r.json();
   const g=document.getElementById('grid'); g.innerHTML='';
-  if(d.error){ g.innerHTML='<div style="color:var(--red)">'+d.error+'</div>'; return; }
+  if(!r.ok || d.error){ g.innerHTML='<div style="color:var(--red)">'+(d.error||'Auth failed')+'</div>'; return; }
   (d.keys||[]).forEach(k=>{
     const el=document.createElement('div'); el.className='k';
     el.innerHTML='<div class="prov">'+k.provider+'</div><div class="lbl"><span class="dot '+k.status+'"></span>'+k.label+'</div><div style="font-size:11px;color:var(--muted)">'+k.status+' · '+k.id+'</div><button class="del" onclick="delKey(\''+k.id+'\')">Delete</button>';
@@ -340,11 +343,14 @@ async function load(){
   if(!d.keys || d.keys.length===0) g.innerHTML='<div style="color:var(--muted);font-size:13px">No keys yet. Add one above.</div>';
 }
 async function save(){
-  const r=await fetch('/api/keys',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({provider:document.getElementById('prov').value,label:document.getElementById('lbl').value,apiKey:document.getElementById('key').value})});
-  const d=await r.json(); toast(d.ok?'Key saved!':'Error: '+(d.error||'Failed')); if(d.ok){document.getElementById('key').value='';document.getElementById('lbl').value='';load();}
+  const body={provider:document.getElementById('prov').value,label:document.getElementById('lbl').value,apiKey:document.getElementById('key').value};
+  const r=await fetch('/api/keys',{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify(body)});
+  const d=await r.json();
+  toast(d.ok?'Saved!':'Error: '+(d.error||'Failed'));
+  if(d.ok){ document.getElementById('key').value=''; document.getElementById('lbl').value=''; load(); }
 }
-async function delKey(id){ if(!confirm('Delete key '+id+'?'))return; await fetch('/api/keys/'+id,{method:'DELETE',headers:authHeaders()}); load(); }
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
+async function delKey(id){ if(!confirm('Delete?'))return; await fetch('/api/keys/'+id,{method:'DELETE',headers:authHeaders()}); load(); }
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2000);}
 load();
 </script></body></html>`;
 
