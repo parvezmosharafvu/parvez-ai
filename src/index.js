@@ -225,9 +225,7 @@ function dashboardPage(env) {
 }
 
 function vaultPage(env, request) {
-  if (!isAdmin(request, env)) {
-    return new Response(LOGIN_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
-  }
+  // Always serve vault; client handles token via localStorage or query
   return new Response(VAULT_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
 
